@@ -1,0 +1,302 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
+        "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans",
+        "Helvetica Neue", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+    font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
+        monospace;
+}
+
+
+
+@layer base {
+  :root {
+        --background: 0 0% 100%;
+        --foreground: 0 0% 3.9%;
+        --card: 0 0% 100%;
+        --card-foreground: 0 0% 3.9%;
+        --popover: 0 0% 100%;
+        --popover-foreground: 0 0% 3.9%;
+        --primary: 0 0% 9%;
+        --primary-foreground: 0 0% 98%;
+        --secondary: 0 0% 96.1%;
+        --secondary-foreground: 0 0% 9%;
+        --muted: 0 0% 96.1%;
+        --muted-foreground: 0 0% 45.1%;
+        --accent: 0 0% 96.1%;
+        --accent-foreground: 0 0% 9%;
+        --destructive: 0 84.2% 60.2%;
+        --destructive-foreground: 0 0% 98%;
+        --border: 0 0% 89.8%;
+        --input: 0 0% 89.8%;
+        --ring: 0 0% 3.9%;
+        --chart-1: 12 76% 61%;
+        --chart-2: 173 58% 39%;
+        --chart-3: 197 37% 24%;
+        --chart-4: 43 74% 66%;
+        --chart-5: 27 87% 67%;
+        --radius: 0.5rem;
+    }
+  .dark {
+        --background: 0 0% 3.9%;
+        --foreground: 0 0% 98%;
+        --card: 0 0% 3.9%;
+        --card-foreground: 0 0% 98%;
+        --popover: 0 0% 3.9%;
+        --popover-foreground: 0 0% 98%;
+        --primary: 0 0% 98%;
+        --primary-foreground: 0 0% 9%;
+        --secondary: 0 0% 14.9%;
+        --secondary-foreground: 0 0% 98%;
+        --muted: 0 0% 14.9%;
+        --muted-foreground: 0 0% 63.9%;
+        --accent: 0 0% 14.9%;
+        --accent-foreground: 0 0% 98%;
+        --destructive: 0 62.8% 30.6%;
+        --destructive-foreground: 0 0% 98%;
+        --border: 0 0% 14.9%;
+        --input: 0 0% 14.9%;
+        --ring: 0 0% 83.1%;
+        --chart-1: 220 70% 50%;
+        --chart-2: 160 60% 45%;
+        --chart-3: 30 80% 55%;
+        --chart-4: 280 65% 60%;
+        --chart-5: 340 75% 55%;
+    }
+}
+
+
+
+@layer base {
+  * {
+    @apply border-border;
+    box-sizing: border-box !important;
+    }
+  html {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+    font-size: 14px !important;
+    }
+  body {
+    @apply bg-background text-foreground;
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    }
+  .App {
+    @apply min-h-screen w-full max-w-full;
+    overflow-x: hidden !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    }
+  
+  /* Critical Mobile Fixes */
+  @media (max-width: 768px) {
+    html {
+      font-size: 13px !important;
+    }
+    body {
+      font-size: 0.875rem !important;
+    }
+    .App {
+      padding: 0 !important;
+      margin: 0 !important;
+    }
+    * {
+      word-wrap: break-word !important;
+      overflow-wrap: break-word !important;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    html {
+      font-size: 12px !important;
+    }
+    body {
+      font-size: 0.8125rem !important;
+    }
+  }
+  
+  /* Ensure responsive table behaviors */
+  .table-responsive {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  
+  /* Force responsive container behaviors */
+  .container-responsive {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+  
+  @media (min-width: 640px) {
+    .container-responsive {
+      padding-left: 1.5rem !important;
+      padding-right: 1.5rem !important;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .container-responsive {
+      padding-left: 2rem !important;
+      padding-right: 2rem !important;
+    }
+  }
+  
+  /* Critical Deployment-Safe Responsive Fixes */
+  
+  /* Tabs responsive fix for deployment */
+  [role="tablist"] {
+    display: grid !important;
+    width: 100% !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.5rem !important;
+    padding: 0.5rem !important;
+  }
+  
+  @media (min-width: 1024px) {
+    [role="tablist"] {
+      grid-template-columns: repeat(4, 1fr) !important;
+    }
+  }
+  
+  /* Tab triggers responsive fix */
+  [role="tab"] {
+    font-size: 0.75rem !important;
+    font-weight: 500 !important;
+    padding: 0.5rem !important;
+    white-space: nowrap !important;
+    text-align: center !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+  
+  @media (min-width: 640px) {
+    [role="tab"] {
+      font-size: 0.875rem !important;
+      padding-left: 1rem !important;
+      padding-right: 1rem !important;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    [role="tab"] {
+      font-size: 1rem !important;
+    }
+  }
+  
+  /* Grid responsive fixes */
+  .grid {
+    display: grid !important;
+  }
+  
+  .grid-cols-1 {
+    grid-template-columns: repeat(1, 1fr) !important;
+  }
+  
+  .grid-cols-2 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  
+  @media (min-width: 1024px) {
+    .lg\:grid-cols-2 {
+      grid-template-columns: repeat(2, 1fr) !important;
+    }
+    .lg\:grid-cols-3 {
+      grid-template-columns: repeat(3, 1fr) !important;
+    }
+    .lg\:grid-cols-4 {
+      grid-template-columns: repeat(4, 1fr) !important;
+    }
+  }
+  
+  @media (min-width: 1280px) {
+    .xl\:grid-cols-2 {
+      grid-template-columns: repeat(2, 1fr) !important;
+    }
+    .xl\:grid-cols-3 {
+      grid-template-columns: repeat(3, 1fr) !important;
+    }
+    .xl\:grid-cols-4 {
+      grid-template-columns: repeat(4, 1fr) !important;
+    }
+  }
+  
+  /* Features Grid Specific Fix */
+  @media (min-width: 1024px) {
+    .grid.grid-cols-1.lg\:grid-cols-3 {
+      grid-template-columns: repeat(3, 1fr) !important;
+      display: grid !important;
+    }
+  }
+  
+  /* Flex responsive fixes */
+  .flex {
+    display: flex !important;
+  }
+  
+  .flex-col {
+    flex-direction: column !important;
+  }
+  
+  .flex-row {
+    flex-direction: row !important;
+  }
+  
+  @media (min-width: 640px) {
+    .sm\:flex-row {
+      flex-direction: row !important;
+    }
+  }
+  
+  /* Hide/show responsive fixes */
+  .hidden {
+    display: none !important;
+  }
+  
+  .block {
+    display: block !important;
+  }
+  
+  @media (min-width: 640px) {
+    .sm\:block {
+      display: block !important;
+    }
+    .sm\:hidden {
+      display: none !important;
+    }
+  }
+  
+  @media (min-width: 768px) {
+    .md\:flex {
+      display: flex !important;
+    }
+    .md\:hidden {
+      display: none !important;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .lg\:block {
+      display: block !important;
+    }
+    .lg\:hidden {
+      display: none !important;
+    }
+  }
+}

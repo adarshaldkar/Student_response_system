@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: students-feedback-backend
+    env: node
+    plan: free
+    buildCommand: npm ci && npm run build
+    startCommand: npm run start
+    rootDir: backend
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: MONGO_URL
+        sync: false
+      - key: DB_NAME
+        value: students_feedback
+      - key: JWT_SECRET
+        sync: false
+      - key: FRONTEND_URL
+        value: https://students-feedback-system-three.vercel.app
