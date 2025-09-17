@@ -11,6 +11,7 @@ export interface IFeedbackForm extends Document {
   createdBy: string;
   createdAt: Date;
   isActive: boolean;
+  isInvalid: boolean;
   shareableLink: string;
 }
 
@@ -62,6 +63,10 @@ const FeedbackFormSchema: Schema = new Schema({
     type: Boolean,
     default: true
   },
+  isInvalid: {
+    type: Boolean,
+    default: false
+  },
   shareableLink: {
     type: String,
     default: ''
@@ -71,5 +76,6 @@ const FeedbackFormSchema: Schema = new Schema({
 // Create indexes
 FeedbackFormSchema.index({ createdBy: 1 });
 FeedbackFormSchema.index({ isActive: 1 });
+FeedbackFormSchema.index({ isInvalid: 1 });
 
 export const FeedbackForm = mongoose.model<IFeedbackForm>('FeedbackForm', FeedbackFormSchema);

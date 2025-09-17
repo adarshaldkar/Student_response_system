@@ -47,6 +47,7 @@ router.post('/', authenticateToken, requireAdmin, async (req: AuthenticatedReque
       created_by: form.createdBy,
       created_at: form.createdAt,
       is_active: form.isActive,
+      is_invalid: form.isInvalid,
       shareable_link: form.shareableLink,
       response_count: 0
     };
@@ -82,6 +83,7 @@ router.get('/', authenticateToken, requireAdmin, async (req: AuthenticatedReques
           created_by: form.createdBy,
           created_at: form.createdAt,
           is_active: form.isActive,
+          is_invalid: form.isInvalid,
           shareable_link: form.shareableLink,
           response_count: responseCount
         };
@@ -103,11 +105,15 @@ router.get('/:formId', async (req, res) => {
 
     const form = await FeedbackForm.findOne({
       id: formId,
-      isActive: true
+      isActive: true,
+      $or: [
+        { isInvalid: false },
+        { isInvalid: { $exists: false } }
+      ]
     });
 
     if (!form) {
-      return res.status(404).json({ detail: 'Feedback form not found' });
+      return res.status(404).json({ detail: 'Feedback form not found or link has been disabled' });
     }
 
     const responseCount = await StudentFeedback.countDocuments({ formId });
@@ -123,6 +129,7 @@ router.get('/:formId', async (req, res) => {
       created_by: form.createdBy,
       created_at: form.createdAt,
       is_active: form.isActive,
+      is_invalid: form.isInvalid,
       shareable_link: form.shareableLink,
       response_count: responseCount
     };
@@ -180,6 +187,7 @@ router.put('/:formId', authenticateToken, requireAdmin, async (req: Authenticate
       created_by: updatedForm!.createdBy,
       created_at: updatedForm!.createdAt,
       is_active: updatedForm!.isActive,
+      is_invalid: updatedForm!.isInvalid,
       shareable_link: updatedForm!.shareableLink,
       response_count: responseCount
     };
@@ -213,6 +221,57 @@ router.delete('/:formId', authenticateToken, requireAdmin, async (req: Authentic
 
   } catch (error) {
     console.error('Delete form error:', error);
+    return res.status(500).json({ detail: 'Internal server error' });
+  }
+});
+
+// Invalidate feedback form link - PATCH /api/forms/:formId/invalidate (Admin only)
+router.patch('/:formId/invalidate', authenticateToken, requireAdmin, async (req: AuthenticatedRequest, res) => {
+  try {
+    const { formId } = req.params;
+
+    const existingForm = await FeedbackForm.findOne({
+      id: formId,
+      createdBy: req.user?.userId
+    });
+
+    if (!existingForm) {
+      return res.status(404).json({ detail: 'Feedback form not found' });
+    }
+
+    if (existingForm.isInvalid) {
+      return res.status(400).json({ detail: 'Feedback form link is already invalid' });
+    }
+
+    // Mark form as invalid
+    await FeedbackForm.updateOne({ id: formId }, { $set: { isInvalid: true } });
+
+    const updatedForm = await FeedbackForm.findOne({ id: formId });
+    const responseCount = await StudentFeedback.countDocuments({ formId });
+
+    const response = {
+      id: updatedForm!.id,
+      title: updatedForm!.title,
+      year: updatedForm!.year,
+      section: updatedForm!.section,
+      department: updatedForm!.department,
+      subjects: updatedForm!.subjects,
+      evaluation_criteria: updatedForm!.evaluationCriteria,
+      created_by: updatedForm!.createdBy,
+      created_at: updatedForm!.createdAt,
+      is_active: updatedForm!.isActive,
+      is_invalid: updatedForm!.isInvalid,
+      shareable_link: updatedForm!.shareableLink,
+      response_count: responseCount
+    };
+
+    return res.json({ 
+      message: 'Feedback form link invalidated successfully',
+      form: response 
+    });
+
+  } catch (error) {
+    console.error('Invalidate form error:', error);
     return res.status(500).json({ detail: 'Internal server error' });
   }
 });

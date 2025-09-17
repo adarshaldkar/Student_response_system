@@ -12,7 +12,7 @@ import { Alert, AlertDescription } from './ui/alert';
 import Footer from './Footer';
 import FileSharing from './FileSharing';
 
-import { Plus, Trash2, Download, Upload, Link, Copy, Loader2, LogOut, Edit, AlertTriangle, FileText, RefreshCw, Sparkles, Save, BookOpen, X, Settings, PlusCircle, Share } from 'lucide-react';
+import { Plus, Trash2, Download, Upload, Link, Copy, Loader2, LogOut, Edit, AlertTriangle, FileText, RefreshCw, Sparkles, Save, BookOpen, X, Settings, PlusCircle, Share, Ban } from 'lucide-react';
 import { toast } from 'sonner';
 
 
@@ -91,7 +91,9 @@ const AdminView = () => {
   const [error, setError] = useState('');
   const [editingForm, setEditingForm] = useState(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(null);
+  const [showInvalidDialog, setShowInvalidDialog] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  const [invalidating, setInvalidating] = useState(false);
   const [newlyCreatedForm, setNewlyCreatedForm] = useState(null);
   const [customTemplates, setCustomTemplates] = useState([]);
   const [showSaveTemplate, setShowSaveTemplate] = useState(false);
@@ -710,6 +712,35 @@ const AdminView = () => {
     }
   };
 
+  const invalidateForm = async (formId) => {
+    try {
+      setInvalidating(true);
+      setError('');
+      
+      await axios.patch(`${API}/forms/${formId}/invalidate`);
+      
+      toast.success('Form link invalidated!', {
+        description: 'The feedback form link has been disabled. Students can no longer access it.',
+        duration: 4000,
+      });
+      setShowInvalidDialog(null);
+      
+      // Refresh forms list
+      await fetchForms();
+      
+    } catch (error) {
+      console.error('Failed to invalidate form:', error);
+      const errorMessage = error.response?.data?.detail || 'Failed to invalidate form. Please try again.';
+      setError(errorMessage);
+      toast.error('Failed to invalidate form', {
+        description: errorMessage,
+        duration: 5000,
+      });
+    } finally {
+      setInvalidating(false);
+    }
+  };
+
   const startEdit = (form) => {
     setEditingForm({
       id: form.id,
@@ -904,15 +935,7 @@ const AdminView = () => {
       overflowX: 'hidden',
       boxSizing: 'border-box'
     }}>
-      <div className="max-w-6xl mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-8" style={{
-        width: '100%',
-        maxWidth: '72rem',
-        margin: '0 auto',
-        paddingLeft: '0.75rem',
-        paddingRight: '0.75rem',
-        paddingTop: '1rem',
-        paddingBottom: '1rem'
-      }}>
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-8">
         {/* Header */}
         <Card className="mb-6 sm:mb-8">
           <CardHeader>
@@ -946,70 +969,20 @@ const AdminView = () => {
         )}
 
         <Tabs defaultValue="create" className="space-y-4 sm:space-y-6">
-          <TabsList className="grid w-full grid-cols-2 lg:grid-cols-5 gap-2 p-2 h-auto" style={{
-            display: 'grid',
-            width: '100%',
-            gridTemplateColumns: 'repeat(2, 1fr)',
-            gap: '0.5rem',
-            padding: '0.5rem',
-            height: 'auto',
-            '@media (min-width: 1024px)': {
-              gridTemplateColumns: 'repeat(5, 1fr)'
-            }
-          }}>
-            <TabsTrigger value="create" className="text-xs sm:text-sm lg:text-base font-medium px-2 sm:px-4 py-2 whitespace-nowrap" style={{
-              fontSize: '0.75rem',
-              fontWeight: '500',
-              paddingLeft: '0.5rem',
-              paddingRight: '0.5rem',
-              paddingTop: '0.5rem',
-              paddingBottom: '0.5rem',
-              whiteSpace: 'nowrap'
-            }}>
+          <TabsList className="grid w-full grid-cols-2 lg:grid-cols-5 gap-1 p-1 h-auto bg-gray-100 rounded-lg">
+            <TabsTrigger value="create" className="text-xs sm:text-sm font-medium px-2 sm:px-3 py-2 rounded-md transition-all duration-200 data-[state=active]:bg-white data-[state=active]:shadow-sm whitespace-nowrap">
               Create Form
             </TabsTrigger>
-            <TabsTrigger value="forms" className="text-xs sm:text-sm lg:text-base font-medium px-2 sm:px-4 py-2 whitespace-nowrap" style={{
-              fontSize: '0.75rem',
-              fontWeight: '500',
-              paddingLeft: '0.5rem',
-              paddingRight: '0.5rem',
-              paddingTop: '0.5rem',
-              paddingBottom: '0.5rem',
-              whiteSpace: 'nowrap'
-            }}>
+            <TabsTrigger value="forms" className="text-xs sm:text-sm font-medium px-2 sm:px-3 py-2 rounded-md transition-all duration-200 data-[state=active]:bg-white data-[state=active]:shadow-sm whitespace-nowrap">
               Manage ({forms.length})
             </TabsTrigger>
-            <TabsTrigger value="upload" className="text-xs sm:text-sm lg:text-base font-medium px-2 sm:px-4 py-2 whitespace-nowrap" style={{
-              fontSize: '0.75rem',
-              fontWeight: '500',
-              paddingLeft: '0.5rem',
-              paddingRight: '0.5rem',
-              paddingTop: '0.5rem',
-              paddingBottom: '0.5rem',
-              whiteSpace: 'nowrap'
-            }}>
+            <TabsTrigger value="upload" className="text-xs sm:text-sm font-medium px-2 sm:px-3 py-2 rounded-md transition-all duration-200 data-[state=active]:bg-white data-[state=active]:shadow-sm whitespace-nowrap">
               Upload Data
             </TabsTrigger>
-            <TabsTrigger value="export" className="text-xs sm:text-sm lg:text-base font-medium px-2 sm:px-4 py-2 whitespace-nowrap" style={{
-              fontSize: '0.75rem',
-              fontWeight: '500',
-              paddingLeft: '0.5rem',
-              paddingRight: '0.5rem',
-              paddingTop: '0.5rem',
-              paddingBottom: '0.5rem',
-              whiteSpace: 'nowrap'
-            }}>
+            <TabsTrigger value="export" className="text-xs sm:text-sm font-medium px-2 sm:px-3 py-2 rounded-md transition-all duration-200 data-[state=active]:bg-white data-[state=active]:shadow-sm whitespace-nowrap">
               Export Data
             </TabsTrigger>
-            <TabsTrigger value="fileshare" className="text-xs sm:text-sm lg:text-base font-medium px-2 sm:px-4 py-2 whitespace-nowrap" style={{
-              fontSize: '0.75rem',
-              fontWeight: '500',
-              paddingLeft: '0.5rem',
-              paddingRight: '0.5rem',
-              paddingTop: '0.5rem',
-              paddingBottom: '0.5rem',
-              whiteSpace: 'nowrap'
-            }}>
+            <TabsTrigger value="fileshare" className="text-xs sm:text-sm font-medium px-2 sm:px-3 py-2 rounded-md transition-all duration-200 data-[state=active]:bg-white data-[state=active]:shadow-sm whitespace-nowrap">
               File Share
             </TabsTrigger>
           </TabsList>
@@ -1549,7 +1522,7 @@ const AdminView = () => {
                 ) : (
                   <div className="space-y-4 sm:space-y-6">
                     {forms.map(form => (
-                      <div key={form.id} className="p-4 sm:p-6 border rounded-lg">
+                      <div key={form.id} className="p-4 sm:p-6 border rounded-lg shadow-sm bg-white hover:shadow-md transition-shadow duration-200">
                         {editingForm?.id === form.id ? (
                           // Edit Mode
                           <div className="space-y-4">
@@ -1770,10 +1743,15 @@ const AdminView = () => {
                                   Created: {new Date(form.created_at).toLocaleString()}
                                 </p>
                               </div>
-                              <div className="flex items-center gap-2 shrink-0">
+                            <div className="flex items-center gap-2 shrink-0">
                                 <Badge variant="secondary" className="text-xs sm:text-sm">
                                   {form.response_count} responses
                                 </Badge>
+                                {form.is_invalid && (
+                                  <Badge variant="destructive" className="text-xs sm:text-sm">
+                                    Link Disabled
+                                  </Badge>
+                                )}
                               </div>
                             </div>
                             
@@ -1792,12 +1770,13 @@ const AdminView = () => {
                               </p>
                             </div>
 
-                            <div className="flex flex-col sm:flex-row gap-3 mt-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2 sm:gap-3 mt-4">
                               <Button 
                                 variant="outline" 
                                 size="sm"
                                 onClick={() => copyToClipboard(form.shareable_link)}
-                                className="flex-1 sm:flex-none text-sm font-medium px-4 py-2 h-10 justify-center"
+                                disabled={form.is_invalid}
+                                className="text-sm font-medium px-3 py-2 h-9 justify-center hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 transition-colors duration-200"
                               >
                                 <Copy className="h-4 w-4 mr-2" />
                                 Copy Link
@@ -1807,7 +1786,7 @@ const AdminView = () => {
                                 size="sm"
                                 onClick={() => exportFormData(form.id)}
                                 disabled={form.response_count === 0}
-                                className="flex-1 sm:flex-none text-sm font-medium px-4 py-2 h-10 justify-center"
+                                className="text-sm font-medium px-3 py-2 h-9 justify-center hover:bg-green-50 hover:border-green-300 hover:text-green-700 transition-colors duration-200"
                               >
                                 <Download className="h-4 w-4 mr-2" />
                                 Export ({form.response_count})
@@ -1816,7 +1795,7 @@ const AdminView = () => {
                                 variant="outline" 
                                 size="sm"
                                 onClick={() => startEdit(form)}
-                                className="flex-1 sm:flex-none text-sm font-medium px-4 py-2 h-10 justify-center text-blue-600 hover:text-blue-700"
+                                className="text-sm font-medium px-3 py-2 h-9 justify-center text-blue-600 hover:text-blue-700 hover:bg-blue-50 hover:border-blue-300 transition-colors duration-200"
                               >
                                 <Edit className="h-4 w-4 mr-2" />
                                 Edit
@@ -1824,8 +1803,18 @@ const AdminView = () => {
                               <Button 
                                 variant="outline" 
                                 size="sm"
+                                onClick={() => setShowInvalidDialog(form.id)}
+                                disabled={form.is_invalid}
+                                className="text-sm font-medium px-3 py-2 h-9 justify-center text-orange-600 hover:text-orange-700 hover:bg-orange-50 hover:border-orange-300 transition-colors duration-200"
+                              >
+                                <Ban className="h-4 w-4 mr-2" />
+                                {form.is_invalid ? 'Link Disabled' : 'Link Invalid'}
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
                                 onClick={() => setShowDeleteDialog(form.id)}
-                                className="flex-1 sm:flex-none text-sm font-medium px-4 py-2 h-10 justify-center text-red-600 hover:text-red-700"
+                                className="text-sm font-medium px-3 py-2 h-9 justify-center text-red-600 hover:text-red-700 hover:bg-red-50 hover:border-red-300 transition-colors duration-200"
                               >
                                 <Trash2 className="h-4 w-4 mr-2" />
                                 Delete
@@ -1943,7 +1932,7 @@ const AdminView = () => {
         {/* Delete Confirmation Dialog */}
         {showDeleteDialog && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-lg p-6 max-w-md w-full">
+            <div className="bg-white rounded-lg p-6 max-w-md w-full shadow-xl">
               <div className="flex items-center gap-3 mb-4">
                 <div className="flex-shrink-0">
                   <AlertTriangle className="h-6 w-6 text-red-600" />
@@ -1986,6 +1975,60 @@ const AdminView = () => {
                     <>
                       <Trash2 className="mr-2 h-4 w-4" />
                       Delete Form
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {/* Invalidate Link Confirmation Dialog */}
+        {showInvalidDialog && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-lg p-6 max-w-md w-full shadow-xl">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="flex-shrink-0">
+                  <Ban className="h-6 w-6 text-orange-600" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    Make Link Invalid
+                  </h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Confirm you want to make this feedback link invalid.
+                  </p>
+                </div>
+              </div>
+              
+              <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 mb-4">
+                <p className="text-sm text-orange-800">
+                  <strong>Note:</strong> Students will no longer be able to access this feedback form through the link. Existing responses will remain intact.
+                </p>
+              </div>
+              
+              <div className="flex gap-3 justify-end">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setShowInvalidDialog(null)}
+                  disabled={invalidating}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  className="bg-orange-600 hover:bg-orange-700 text-white"
+                  onClick={() => invalidateForm(showInvalidDialog)}
+                  disabled={invalidating}
+                >
+                  {invalidating ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Invalidating...
+                    </>
+                  ) : (
+                    <>
+                      <Ban className="mr-2 h-4 w-4" />
+                      Make Invalid
                     </>
                   )}
                 </Button>
