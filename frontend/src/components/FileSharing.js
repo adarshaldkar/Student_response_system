@@ -29,15 +29,7 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { toast } from 'sonner';
-
-// Force localhost for development
-const BACKEND_URL = 'http://localhost:8001';
-const API = `${BACKEND_URL}/api`;
-
-// Debug logging
-console.log('FileSharing - Backend URL:', BACKEND_URL);
-console.log('FileSharing - API base:', API);
-console.log('FileSharing - Environment REACT_APP_BACKEND_URL:', process.env.REACT_APP_BACKEND_URL);
+import { BACKEND_URL, API } from '../config/api';
 
 const FileSharing = () => {
   const { user } = useAuth();

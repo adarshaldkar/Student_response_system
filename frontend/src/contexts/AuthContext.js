@@ -1,13 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
+import { BACKEND_URL, API } from '../config/api';
 
 const AuthContext = createContext();
-
-// Force localhost for development
-const BACKEND_URL = 'http://localhost:8001';
-const API = `${BACKEND_URL}/api`;
-console.log('AuthContext - Backend URL:', BACKEND_URL);
-console.log('AuthContext - API base:', API);
 
 export const useAuth = () => {
   const context = useContext(AuthContext);

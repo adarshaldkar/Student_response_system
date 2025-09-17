@@ -14,13 +14,7 @@ import FileSharing from './FileSharing';
 
 import { Plus, Trash2, Download, Upload, Link, Copy, Loader2, LogOut, Edit, AlertTriangle, FileText, RefreshCw, Sparkles, Save, BookOpen, X, Settings, PlusCircle, Share, Ban } from 'lucide-react';
 import { toast } from 'sonner';
-
-
-// Force localhost for development
-const BACKEND_URL = 'http://localhost:8001';
-const API = `${BACKEND_URL}/api`;
-console.log('AdminView - Backend URL:', BACKEND_URL);
-console.log('AdminView - API base:', API);
+import { BACKEND_URL, API } from '../config/api';
 
 // Standard Evaluation Criteria
 const STANDARD_EVALUATION_CRITERIA = [

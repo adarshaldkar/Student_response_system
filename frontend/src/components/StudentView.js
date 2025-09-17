@@ -19,11 +19,7 @@ import { Alert, AlertDescription } from "./ui/alert";
 import { Loader2, FileDown, Phone, Users, Linkedin, Heart } from "lucide-react";
 import { useToast } from "../hooks/use-toast";
 import Footer from "./Footer";
-
-const BACKEND_URL =
-  process.env.REACT_APP_BACKEND_URL ||
-  "http://localhost:8001";
-const API = `${BACKEND_URL}/api`;
+import { BACKEND_URL, API } from '../config/api';
 
 const StudentView = () => {
   const { formId } = useParams();
