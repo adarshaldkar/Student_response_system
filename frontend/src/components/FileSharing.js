@@ -475,24 +475,29 @@ const FileSharing = () => {
   return (
     <div className="space-y-6">
       <Tabs defaultValue="upload" className="space-y-4">
-        <div className="flex justify-between items-center mb-4">
-          <TabsList className="grid w-full max-w-md grid-cols-3">
-            <TabsTrigger value="upload" className="text-sm font-medium">
-              <Upload className="h-4 w-4 mr-2" />
-              Upload File
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-4 gap-4">
+          <TabsList className="grid w-full grid-cols-3 h-auto">
+            <TabsTrigger value="upload" className="flex-1 text-xs sm:text-sm font-medium py-2 px-2 sm:px-4 flex items-center justify-center">
+              <Upload className="h-4 w-4 mr-1 sm:mr-2 flex-shrink-0" />
+              <span>Upload File</span>
+              
             </TabsTrigger>
-            <TabsTrigger value="received" className="text-sm font-medium">
-              <Download className="h-4 w-4 mr-2" />
-              Received Files
-              {receivedFiles.filter(f => f.status !== 'viewed').length > 0 && (
-                <Badge variant="destructive" className="ml-2 text-xs">
-                  {receivedFiles.filter(f => f.status !== 'viewed').length}
-                </Badge>
-              )}
+            <TabsTrigger value="received" className="flex-1 text-xs sm:text-sm font-medium py-2 px-2 sm:px-4 flex items-center justify-center relative">
+              <div className="flex items-center justify-center">
+                <Download className="h-4 w-4 mr-1 sm:mr-2 flex-shrink-0" />
+                <span>Received Files</span>
+                
+                {receivedFiles.filter(f => f.status !== 'viewed').length > 0 && (
+                  <Badge variant="destructive" className="ml-1 sm:ml-2 text-xs">
+                    {receivedFiles.filter(f => f.status !== 'viewed').length}
+                  </Badge>
+                )}
+              </div>
             </TabsTrigger>
-            <TabsTrigger value="sent" className="text-sm font-medium">
-              <FileText className="h-4 w-4 mr-2" />
-              Sent Files
+            <TabsTrigger value="sent" className="flex-1 text-xs sm:text-sm font-medium py-2 px-2 sm:px-4 flex items-center justify-center">
+              <FileText className="h-4 w-4 mr-1 sm:mr-2 flex-shrink-0" />
+              <span>Sent Files</span>
+              
             </TabsTrigger>
           </TabsList>
           
