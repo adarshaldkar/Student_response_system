@@ -591,89 +591,606 @@ const AdminView = () => {
       }
 
       const workbook = XLSX.utils.book_new();
+      const feedbacks = data.feedbacks;
+      const subjects = Object.keys(feedbacks[0]?.ratings || {});
+      const criteria = Object.keys(feedbacks[0]?.ratings[subjects[0]] || {});
+      const totalStudents = feedbacks.length;
 
-      // Create summary sheet
-      const summaryData = [
-        [`Feedback Summary - ${data.form_title}`],
+      // Calculate average ratings for each criteria-subject combination
+      const calculateAverageRating = (criterion, subject) => {
+        let sum = 0;
+        let count = 0;
+        feedbacks.forEach(feedback => {
+          const rating = feedback.ratings[subject]?.[criterion];
+          if (rating && !isNaN(rating)) {
+            sum += parseFloat(rating);
+            count++;
+          }
+        });
+        return count > 0 ? (sum / count).toFixed(1) : '0.0';
+      };
+
+      // SHEET 1: MAIN ANALYSIS (Like your UI format with Statistics)
+      const analysisData = [
+        [`TEACHER FEEDBACK ANALYSIS - ${data.form_title}`],
         [`${data.year} ${data.department} - Section ${data.section}`],
-        [`Total Responses: ${data.total_responses}`],
+        [`Generated on: ${new Date().toLocaleString()}`],
+        [`Total Responses: ${totalStudents} students`],
         [''],
-        ['Subject-wise Average Ratings:'],
-        ...Object.entries(data.average_ratings_per_subject).map(([subject, rating]) => [
-          subject, rating.toFixed(2)
-        ]),
-        [''],
-        ['Individual Student Responses:'],
-        ['Student ID', 'Student Name', 'Submitted On', 'Comments', ...Object.keys(data.average_ratings_per_subject)]
+        // Create header row with subjects
+        ['Evaluation Criteria', ...subjects, 'Overall Average']
       ];
 
-      // Add individual responses
-      data.feedbacks.forEach(feedback => {
-        const row = [
-          feedback.student_id,
-          feedback.student_name || 'Not provided',
-          new Date(feedback.submitted_at).toLocaleString(),
-          feedback.comments || 'No comments'
-        ];
-        
-        // Add average ratings for each subject
-        Object.keys(data.average_ratings_per_subject).forEach(subject => {
-          row.push(feedback.averages[subject] ? feedback.averages[subject].toFixed(2) : 'N/A');
+      // Add each criteria as a row with averages for each subject
+      criteria.forEach(criterion => {
+        const row = [criterion];
+        let totalForCriterion = 0;
+        let subjectCount = 0;
+
+        subjects.forEach(subject => {
+          const avg = calculateAverageRating(criterion, subject);
+          row.push(avg);
+          totalForCriterion += parseFloat(avg);
+          subjectCount++;
         });
+
+        // Overall average for this criterion
+        const overallAvg = subjectCount > 0 ? (totalForCriterion / subjectCount).toFixed(1) : '0.0';
+        row.push(overallAvg);
         
-        summaryData.push(row);
+        analysisData.push(row);
       });
 
-      const summarySheet = XLSX.utils.aoa_to_sheet(summaryData);
-      XLSX.utils.book_append_sheet(workbook, summarySheet, 'Summary');
-
-      // Create detailed sheet with all ratings
-      if (data.feedbacks.length > 0) {
-        const firstFeedback = data.feedbacks[0];
-        const subjects = Object.keys(firstFeedback.ratings);
-        const criteria = Object.keys(firstFeedback.ratings[subjects[0]] || {});
-
-        const detailedData = [
-          [`Detailed Feedback - ${data.form_title}`],
-          [`${data.year} ${data.department} - Section ${data.section}`],
-          [''],
-          ['Student ID', 'Student Name', 'Submitted On', ...subjects.flatMap(subject => 
-            criteria.map(criterion => `${subject} - ${criterion}`)
-          ), 'Comments']
-        ];
-
-        data.feedbacks.forEach(feedback => {
-          const row = [
-            feedback.student_id,
-            feedback.student_name || 'Not provided',
-            new Date(feedback.submitted_at).toLocaleString()
-          ];
-          
-          subjects.forEach(subject => {
-            criteria.forEach(criterion => {
-              row.push(feedback.ratings[subject]?.[criterion] || 'N/A');
-            });
-          });
-          
-          row.push(feedback.comments || 'No comments');
-          detailedData.push(row);
+      // Add subject averages row
+      const subjectAveragesRow = ['Your Average Rating'];
+      let grandTotal = 0;
+      subjects.forEach(subject => {
+        let subjectTotal = 0;
+        criteria.forEach(criterion => {
+          subjectTotal += parseFloat(calculateAverageRating(criterion, subject));
         });
+        const subjectAvg = criteria.length > 0 ? (subjectTotal / criteria.length).toFixed(1) : '0.0';
+        subjectAveragesRow.push(subjectAvg);
+        grandTotal += parseFloat(subjectAvg);
+      });
+      
+      // Grand average
+      const grandAverage = subjects.length > 0 ? (grandTotal / subjects.length).toFixed(1) : '0.0';
+      subjectAveragesRow.push(grandAverage);
+      analysisData.push(subjectAveragesRow);
 
-        const detailedSheet = XLSX.utils.aoa_to_sheet(detailedData);
-        XLSX.utils.book_append_sheet(workbook, detailedSheet, 'Detailed');
+      // Add spacing and statistics section
+      analysisData.push(['']);
+      analysisData.push(['PERFORMANCE STATISTICS:']);
+      analysisData.push(['']);
+      
+      // Subject Performance Ranking
+      analysisData.push(['SUBJECT PERFORMANCE RANKING:']);
+      analysisData.push(['Rank', 'Subject', 'Average Rating', 'Performance Level', '', '', '']);
+      
+      const subjectRankings = subjects.map(subject => {
+        let subjectTotal = 0;
+        criteria.forEach(criterion => {
+          subjectTotal += parseFloat(calculateAverageRating(criterion, subject));
+        });
+        const avg = criteria.length > 0 ? subjectTotal / criteria.length : 0;
+        return { subject, average: avg };
+      }).sort((a, b) => b.average - a.average);
+
+      subjectRankings.forEach((item, index) => {
+        const performanceLevel = item.average >= 4.5 ? 'Excellent' : 
+                                item.average >= 4.0 ? 'Very Good' :
+                                item.average >= 3.5 ? 'Good' :
+                                item.average >= 3.0 ? 'Average' : 'Needs Improvement';
+        
+        analysisData.push([
+          index + 1,
+          item.subject,
+          item.average.toFixed(1),
+          performanceLevel,
+          '', '', ''
+        ]);
+      });
+
+      analysisData.push(['']);
+      analysisData.push(['📊 CRITERIA PERFORMANCE ANALYSIS:']);
+      analysisData.push(['']);
+      analysisData.push(['🏆 TOP PERFORMING CRITERIA:', '', '', '', '', '']);
+      analysisData.push(['Rank', 'Teaching Parameter', 'Avg Score', 'Level', 'Visual', '']);
+
+      // Calculate criteria rankings
+      const criteriaRankings = criteria.map(criterion => {
+        let criteriaTotal = 0;
+        subjects.forEach(subject => {
+          criteriaTotal += parseFloat(calculateAverageRating(criterion, subject));
+        });
+        const avg = subjects.length > 0 ? criteriaTotal / subjects.length : 0;
+        return { criterion, average: avg };
+      }).sort((a, b) => b.average - a.average);
+
+      // Show only top 5 and bottom 3 for better presentation
+      const topCriteria = criteriaRankings.slice(0, 5);
+      const bottomCriteria = criteriaRankings.slice(-3);
+      
+      topCriteria.forEach((item, index) => {
+        const performanceLevel = item.average >= 4.5 ? 'Excellent' : 
+                                item.average >= 4.0 ? 'Very Good' :
+                                item.average >= 3.5 ? 'Good' :
+                                item.average >= 3.0 ? 'Average' : 'Needs Improvement';
+        
+        // Create visual representation with stars
+        const stars = Math.round(item.average);
+        const visual = '★'.repeat(stars) + '☆'.repeat(5-stars);
+        
+        analysisData.push([
+          index + 1,
+          item.criterion.length > 45 ? item.criterion.substring(0, 45) + '...' : item.criterion,
+          item.average.toFixed(1),
+          performanceLevel,
+          visual,
+          ''
+        ]);
+      });
+      
+      if (criteriaRankings.length > 5) {
+        analysisData.push(['']);
+        analysisData.push(['⚠️ AREAS NEEDING ATTENTION:', '', '', '', '', '']);
+        
+        bottomCriteria.forEach((item, index) => {
+          const performanceLevel = item.average >= 4.5 ? 'Excellent' : 
+                                  item.average >= 4.0 ? 'Very Good' :
+                                  item.average >= 3.5 ? 'Good' :
+                                  item.average >= 3.0 ? 'Average' : 'Needs Improvement';
+          
+          const stars = Math.round(item.average);
+          const visual = '★'.repeat(stars) + '☆'.repeat(5-stars);
+          
+          analysisData.push([
+            criteriaRankings.length - bottomCriteria.length + index + 1,
+            item.criterion.length > 45 ? item.criterion.substring(0, 45) + '...' : item.criterion,
+            item.average.toFixed(1),
+            performanceLevel,
+            visual,
+            ''
+          ]);
+        });
       }
 
-      const fileName = `Feedback_${data.year}_${data.department}_${data.section}_${new Date().toISOString().split('T')[0]}.xlsx`;
+      const analysisSheet = XLSX.utils.aoa_to_sheet(analysisData);
+      
+      // Apply beautiful styling to Analysis Sheet
+      const analysisRange = XLSX.utils.decode_range(analysisSheet['!ref'] || 'A1');
+      
+      // Set column widths for better readability
+      analysisSheet['!cols'] = [
+        { wch: 50 }, // Evaluation Criteria - wide column
+        ...subjects.map(() => ({ wch: 12 })), // Subject columns
+        { wch: 15 }, // Overall Average column
+        { wch: 8 },  // Rank column
+        { wch: 45 }, // Teaching Parameter column
+        { wch: 12 }, // Avg Score column
+        { wch: 15 }, // Level column
+        { wch: 12 }, // Visual column
+        { wch: 8 }   // Extra column
+      ];
+      
+      // Style headers and important cells
+      for (let R = analysisRange.s.r; R <= analysisRange.e.r; ++R) {
+        for (let C = analysisRange.s.c; C <= analysisRange.e.c; ++C) {
+          const cell_address = XLSX.utils.encode_cell({ r: R, c: C });
+          if (!analysisSheet[cell_address]) continue;
+          
+          const cell = analysisSheet[cell_address];
+          
+          // Title rows (first 4 rows)
+          if (R <= 3) {
+            cell.s = {
+              font: { bold: true, sz: 14, color: { rgb: '1F4E79' } },
+              alignment: { horizontal: 'center', vertical: 'center', wrapText: true },
+              fill: { fgColor: { rgb: 'E6F2FF' } }
+            };
+          }
+          // Special Title Rows: 6th, 24th, 26th, 33rd, 35th, 43rd (Main Titles)
+          else if (R === 5 || R === 23 || R === 25 || R === 32 || R === 34 || R === 42) {
+            cell.s = {
+              font: { bold: true, sz: 13, color: { rgb: 'FFFFFF' } },
+              alignment: { horizontal: 'center', vertical: 'center', wrapText: true },
+              fill: { fgColor: { rgb: '1F4E79' } },
+              border: {
+                top: { style: 'thick', color: { rgb: '000000' } },
+                bottom: { style: 'thick', color: { rgb: '000000' } },
+                left: { style: 'medium', color: { rgb: '000000' } },
+                right: { style: 'medium', color: { rgb: '000000' } }
+              }
+            };
+          }
+          // Subtitle Row: 22nd (Subtitle formatting)
+          else if (R === 21) {
+            cell.s = {
+              font: { bold: true, sz: 12, color: { rgb: '1F4E79' } },
+              alignment: { horizontal: 'center', vertical: 'center', wrapText: true },
+              fill: { fgColor: { rgb: 'D9E2F3' } },
+              border: {
+                top: { style: 'medium', color: { rgb: '1F4E79' } },
+                bottom: { style: 'medium', color: { rgb: '1F4E79' } },
+                left: { style: 'thin', color: { rgb: '1F4E79' } },
+                right: { style: 'thin', color: { rgb: '1F4E79' } }
+              }
+            };
+          }
+          // "Your Average Rating" row
+          else if (analysisSheet[cell_address].v === 'Your Average Rating' || 
+                   (R > 5 && R <= 5 + criteria.length + 1 && 
+                    analysisSheet[XLSX.utils.encode_cell({ r: R, c: 0 })].v === 'Your Average Rating')) {
+            cell.s = {
+              font: { bold: true, sz: 12, color: { rgb: 'FFFFFF' } },
+              alignment: { horizontal: 'center', vertical: 'center', wrapText: true },
+              fill: { fgColor: { rgb: '70AD47' } },
+              border: {
+                top: { style: 'thick', color: { rgb: '000000' } },
+                bottom: { style: 'thick', color: { rgb: '000000' } },
+                left: { style: 'thick', color: { rgb: '000000' } },
+                right: { style: 'thick', color: { rgb: '000000' } }
+              }
+            };
+          }
+          // Criteria rows
+          else if (R > 5 && R <= 5 + criteria.length) {
+            if (C === 0) {
+              // Criteria column - center aligned with wrap text
+              cell.s = {
+                font: { sz: 10, bold: false },
+                alignment: { horizontal: 'center', vertical: 'center', wrapText: true },
+                fill: { fgColor: { rgb: 'F8F9FA' } },
+                border: {
+                  top: { style: 'thin', color: { rgb: '000000' } },
+                  bottom: { style: 'thin', color: { rgb: '000000' } },
+                  left: { style: 'thin', color: { rgb: '000000' } },
+                  right: { style: 'thin', color: { rgb: '000000' } }
+                }
+              };
+            } else {
+              // Rating cells - center aligned with color coding
+              const rating = parseFloat(cell.v);
+              let bgColor = 'FFFFFF'; // Default white
+              
+              if (!isNaN(rating)) {
+                if (rating >= 4.5) bgColor = 'C6EFCE'; // Light green - Excellent
+                else if (rating >= 4.0) bgColor = 'D4F4DD'; // Very light green - Very Good
+                else if (rating >= 3.5) bgColor = 'FFEB9C'; // Light yellow - Good
+                else if (rating >= 3.0) bgColor = 'FFD2CC'; // Light orange - Average
+                else bgColor = 'FFC7CE'; // Light red - Needs Improvement
+              }
+              
+              cell.s = {
+                font: { bold: true, sz: 11 },
+                alignment: { horizontal: 'center', vertical: 'center', wrapText: true },
+                fill: { fgColor: { rgb: bgColor } },
+                border: {
+                  top: { style: 'thin', color: { rgb: '000000' } },
+                  bottom: { style: 'thin', color: { rgb: '000000' } },
+                  left: { style: 'thin', color: { rgb: '000000' } },
+                  right: { style: 'thin', color: { rgb: '000000' } }
+                }
+              };
+            }
+          }
+          // Statistics section headers
+          else if (cell.v && (cell.v.toString().includes('STATISTICS') || 
+                              cell.v.toString().includes('RANKING') || 
+                              cell.v === 'Rank' || cell.v === 'Subject' || 
+                              cell.v === 'Average Rating' || cell.v === 'Performance Level')) {
+            cell.s = {
+              font: { bold: true, sz: 11, color: { rgb: '1F4E79' } },
+              alignment: { horizontal: 'center', vertical: 'center', wrapText: true },
+              fill: { fgColor: { rgb: 'D9E2F3' } },
+              border: {
+                top: { style: 'thin', color: { rgb: '000000' } },
+                bottom: { style: 'thin', color: { rgb: '000000' } },
+                left: { style: 'thin', color: { rgb: '000000' } },
+                right: { style: 'thin', color: { rgb: '000000' } }
+              }
+            };
+          }
+          // Regular statistics data and all other cells
+          else {
+            // Check if it's a visual star rating
+            const isVisualRating = cell.v && cell.v.toString().includes('★');
+            // Check if it's a performance level
+            const isPerformanceLevel = cell.v && (cell.v === 'Excellent' || cell.v === 'Very Good' || cell.v === 'Good' || cell.v === 'Average' || cell.v === 'Needs Improvement');
+            
+            let bgColor = 'FFFFFF';
+            let fontColor = '000000';
+            
+            if (isPerformanceLevel) {
+              if (cell.v === 'Excellent') { bgColor = 'C6EFCE'; fontColor = '006100'; }
+              else if (cell.v === 'Very Good') { bgColor = 'D4F4DD'; fontColor = '0E7A0E'; }
+              else if (cell.v === 'Good') { bgColor = 'FFEB9C'; fontColor = '9C5700'; }
+              else if (cell.v === 'Average') { bgColor = 'FFD2CC'; fontColor = 'A0522D'; }
+              else if (cell.v === 'Needs Improvement') { bgColor = 'FFC7CE'; fontColor = 'C50012'; }
+            }
+            
+            cell.s = {
+              font: { sz: isVisualRating ? 12 : 10, bold: isPerformanceLevel || isVisualRating, color: { rgb: fontColor } },
+              alignment: { horizontal: 'center', vertical: 'center', wrapText: true },
+              fill: { fgColor: { rgb: bgColor } },
+              border: {
+                top: { style: 'thin', color: { rgb: '000000' } },
+                bottom: { style: 'thin', color: { rgb: '000000' } },
+                left: { style: 'thin', color: { rgb: '000000' } },
+                right: { style: 'thin', color: { rgb: '000000' } }
+              }
+            };
+          }
+        }
+      }
+      
+      // Set row heights for better appearance
+      analysisSheet['!rows'] = [];
+      for (let i = 0; i <= analysisRange.e.r; i++) {
+        if (i <= 3) {
+          // Title rows - taller
+          analysisSheet['!rows'][i] = { hpx: 25 };
+        } else if (i === 5 || i === 21 || i === 23 || i === 25 || i === 32 || i === 34 || i === 42) {
+          // Special title/subtitle rows - medium height
+          analysisSheet['!rows'][i] = { hpx: 22 };
+        } else {
+          // Regular rows
+          analysisSheet['!rows'][i] = { hpx: 18 };
+        }
+      }
+      
+      // Add Excel table format to Analysis sheet
+      const analysisTableRange = `A6:${XLSX.utils.encode_col(subjects.length + 1)}${6 + criteria.length}`;
+      analysisSheet['!tables'] = [{
+        name: 'AnalysisTable',
+        range: analysisTableRange,
+        headerRow: true,
+        totalsRow: false
+      }];
+      
+      XLSX.utils.book_append_sheet(workbook, analysisSheet, '📊 Analysis & Statistics');
+
+      // SHEET 2: STUDENT DETAILS & RESPONSES
+      const studentDetailsData = [
+        [`🎓 STUDENT PARTICIPATION & DETAILED RESPONSES`],
+        [`📋 Form: ${data.form_title}`],
+        [`🏫 Class: ${data.year} ${data.department} - Section ${data.section}`],
+        [`👥 Total Students Responded: ${totalStudents}`],
+        [''],
+        ['📝 STUDENT PARTICIPATION LIST:'],
+        ['Sr. No.', 'Student ID', 'Student Name', 'Submission Date', '⭐ Overall Rating', '💭 Comments'],
+      ];
+
+      // Add student participation details
+      feedbacks.forEach((feedback, index) => {
+        const submissionDate = new Date(feedback.submitted_at);
+        
+        // Calculate student's overall rating
+        let totalRating = 0;
+        let ratingCount = 0;
+        subjects.forEach(subject => {
+          criteria.forEach(criterion => {
+            const rating = feedback.ratings[subject]?.[criterion];
+            if (rating && !isNaN(rating)) {
+              totalRating += parseFloat(rating);
+              ratingCount++;
+            }
+          });
+        });
+        
+        const overallRating = ratingCount > 0 ? (totalRating / ratingCount).toFixed(1) : 'N/A';
+        
+        studentDetailsData.push([
+          index + 1,
+          feedback.student_id,
+          feedback.student_name || 'Anonymous',
+          submissionDate.toLocaleString(),
+          overallRating,
+          (feedback.comments || 'No comments').substring(0, 150) + (feedback.comments && feedback.comments.length > 150 ? '...' : '')
+        ]);
+      });
+
+      // Add visual summary statistics
+      studentDetailsData.push(['']);
+      studentDetailsData.push(['📊 PARTICIPATION SUMMARY:']);
+      studentDetailsData.push(['']);
+      studentDetailsData.push(['Metric', 'Value', 'Description']);
+      
+      // Calculate participation statistics
+      const avgOverallRating = feedbacks.length > 0 ? 
+        feedbacks.reduce((sum, feedback) => {
+          let totalRating = 0;
+          let ratingCount = 0;
+          subjects.forEach(subject => {
+            criteria.forEach(criterion => {
+              const rating = feedback.ratings[subject]?.[criterion];
+              if (rating && !isNaN(rating)) {
+                totalRating += parseFloat(rating);
+                ratingCount++;
+              }
+            });
+          });
+          return sum + (ratingCount > 0 ? totalRating / ratingCount : 0);
+        }, 0) / feedbacks.length : 0;
+      
+      const excellentCount = feedbacks.filter(f => {
+        let totalRating = 0, ratingCount = 0;
+        subjects.forEach(subject => {
+          criteria.forEach(criterion => {
+            const rating = f.ratings[subject]?.[criterion];
+            if (rating && !isNaN(rating)) {
+              totalRating += parseFloat(rating);
+              ratingCount++;
+            }
+          });
+        });
+        return ratingCount > 0 && (totalRating / ratingCount) >= 4.5;
+      }).length;
+      
+      const goodCount = feedbacks.filter(f => {
+        let totalRating = 0, ratingCount = 0;
+        subjects.forEach(subject => {
+          criteria.forEach(criterion => {
+            const rating = f.ratings[subject]?.[criterion];
+            if (rating && !isNaN(rating)) {
+              totalRating += parseFloat(rating);
+              ratingCount++;
+            }
+          });
+        });
+        const avg = ratingCount > 0 ? totalRating / ratingCount : 0;
+        return avg >= 4.0 && avg < 4.5;
+      }).length;
+      
+      studentDetailsData.push(['📊 Average Rating', avgOverallRating.toFixed(2) + '/5.0', 'Overall class performance']);
+      studentDetailsData.push(['🌟 Excellent Students', excellentCount + '/' + totalStudents, 'Students with 4.5+ rating']);
+      studentDetailsData.push(['👍 Good Students', goodCount + '/' + totalStudents, 'Students with 4.0-4.4 rating']);
+      studentDetailsData.push(['📈 Response Rate', '100%', 'Based on submitted responses']);
+      studentDetailsData.push(['📅 Collection Period', new Date(Math.min(...feedbacks.map(f => new Date(f.submitted_at)))).toLocaleDateString() + ' to ' + new Date(Math.max(...feedbacks.map(f => new Date(f.submitted_at)))).toLocaleDateString(), 'Feedback collection timeframe']);
+
+      const studentDetailsSheet = XLSX.utils.aoa_to_sheet(studentDetailsData);
+      
+      // Apply beautiful styling to Student Details Sheet
+      const studentRange = XLSX.utils.decode_range(studentDetailsSheet['!ref'] || 'A1');
+      
+      // Set column widths for Student Details sheet
+      studentDetailsSheet['!cols'] = [
+        { wch: 8 },  // Sr. No
+        { wch: 20 }, // Student ID  
+        { wch: 25 }, // Student Name
+        { wch: 18 }, // Submission Date
+        { wch: 15 }, // Overall Rating
+        { wch: 50 }, // Comments - wider for better readability
+        { wch: 20 }, // Metric
+        { wch: 15 }, // Value
+        { wch: 40 }  // Description
+      ];
+      
+      // Style Student Details Sheet
+      for (let R = studentRange.s.r; R <= studentRange.e.r; ++R) {
+        for (let C = studentRange.s.c; C <= studentRange.e.c; ++C) {
+          const cell_address = XLSX.utils.encode_cell({ r: R, c: C });
+          if (!studentDetailsSheet[cell_address]) continue;
+          
+          const cell = studentDetailsSheet[cell_address];
+          
+          // Title rows
+          if (R <= 3) {
+            cell.s = {
+              font: { bold: true, sz: 14, color: { rgb: '1F4E79' } },
+              alignment: { horizontal: 'center', vertical: 'center', wrapText: true },
+              fill: { fgColor: { rgb: 'E6F7FF' } }
+            };
+          }
+          // Section headers
+          else if (cell.v && (cell.v.toString().includes('PARTICIPATION') || 
+                              cell.v.toString().includes('DETAILED') || 
+                              cell.v.toString().includes('RESPONSES'))) {
+            cell.s = {
+              font: { bold: true, sz: 12, color: { rgb: '1F4E79' } },
+              alignment: { horizontal: 'left', vertical: 'center', wrapText: true },
+              fill: { fgColor: { rgb: 'F0F8FF' } }
+            };
+          }
+          // Table headers
+          else if (cell.v && (cell.v === 'Sr. No.' || cell.v === 'Student ID' || 
+                              cell.v === 'Student Name' || cell.v.toString().includes('Rating') ||
+                              cell.v.toString().includes('Comments') || cell.v.toString().includes('Date'))) {
+            cell.s = {
+              font: { bold: true, sz: 11, color: { rgb: 'FFFFFF' } },
+              alignment: { horizontal: 'center', vertical: 'center', wrapText: true },
+              fill: { fgColor: { rgb: '4472C4' } },
+              border: {
+                top: { style: 'thick', color: { rgb: '000000' } },
+                bottom: { style: 'thick', color: { rgb: '000000' } },
+                left: { style: 'thin', color: { rgb: '000000' } },
+                right: { style: 'thin', color: { rgb: '000000' } }
+              }
+            };
+          }
+          // Data cells
+          else {
+            // Color code rating cells and special values
+            const rating = parseFloat(cell.v);
+            let bgColor = 'FFFFFF';
+            let fontColor = '000000';
+            let isBold = false;
+            
+            // Check for special metric cells
+            if (cell.v && (cell.v.toString().includes('📊') || cell.v.toString().includes('🌟') || cell.v.toString().includes('👍') || cell.v.toString().includes('📈') || cell.v.toString().includes('📅'))) {
+              bgColor = 'E6F7FF';
+              fontColor = '1F4E79';
+              isBold = true;
+            }
+            // Color code numeric ratings
+            else if (!isNaN(rating)) {
+              if (rating >= 4.5) { bgColor = 'C6EFCE'; fontColor = '006100'; }
+              else if (rating >= 4.0) { bgColor = 'D4F4DD'; fontColor = '0E7A0E'; }
+              else if (rating >= 3.5) { bgColor = 'FFEB9C'; fontColor = '9C5700'; }
+              else if (rating >= 3.0) { bgColor = 'FFD2CC'; fontColor = 'A0522D'; }
+              else { bgColor = 'FFC7CE'; fontColor = 'C50012'; }
+              isBold = true;
+            }
+            // Special styling for values like percentages and fractions
+            else if (cell.v && (cell.v.toString().includes('/') || cell.v.toString().includes('%'))) {
+              fontColor = '1F4E79';
+              isBold = true;
+            }
+            
+            cell.s = {
+              font: { sz: 10, bold: isBold, color: { rgb: fontColor } },
+              alignment: { horizontal: 'center', vertical: 'center', wrapText: true },
+              fill: { fgColor: { rgb: bgColor } },
+              border: {
+                top: { style: 'thin', color: { rgb: '000000' } },
+                bottom: { style: 'thin', color: { rgb: '000000' } },
+                left: { style: 'thin', color: { rgb: '000000' } },
+                right: { style: 'thin', color: { rgb: '000000' } }
+              }
+            };
+          }
+        }
+      }
+      
+      // Add Excel table format to Student Details sheet
+      const studentTableRange = `A7:F${7 + feedbacks.length}`;
+      studentDetailsSheet['!tables'] = [{
+        name: 'StudentTable', 
+        range: studentTableRange,
+        headerRow: true,
+        totalsRow: false
+      }];
+      
+      // Add Excel table format to Summary section
+      const summaryTableRange = `A${9 + feedbacks.length}:C${13 + feedbacks.length}`;
+      if (feedbacks.length > 0) {
+        studentDetailsSheet['!tables'].push({
+          name: 'SummaryTable',
+          range: summaryTableRange,
+          headerRow: true,
+          totalsRow: false
+        });
+      }
+      
+      XLSX.utils.book_append_sheet(workbook, studentDetailsSheet, '👥 Student Details');
+
+      // Generate filename with timestamp
+      const fileName = `Feedback_Analysis_${data.year}_${data.department}_${data.section}_${new Date().toISOString().slice(0, 10)}_${new Date().toTimeString().slice(0, 5).replace(':', '')}.xlsx`;
       XLSX.writeFile(workbook, fileName);
       
-      toast.success('Data exported successfully!', {
-        description: `Feedback data has been exported as ${fileName}`,
-        duration: 4000,
+      toast.success('Comprehensive report exported!', {
+        description: `Detailed feedback analysis exported as ${fileName}`,
+        duration: 5000,
       });
       
     } catch (error) {
       console.error('Failed to export data:', error);
       setError('Failed to export data. Please try again.');
+      toast.error('Export failed', {
+        description: error.response?.data?.detail || 'Please try again',
+        duration: 4000,
+      });
     }
   };
 
