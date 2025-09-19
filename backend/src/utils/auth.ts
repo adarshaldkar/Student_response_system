@@ -33,6 +33,7 @@ export interface AuthenticatedRequest extends Request {
     userId: string;
     role: UserRole;
   };
+  file?: any; // For multer file uploads
 }
 
 export const authenticateToken = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {

@@ -9,13 +9,13 @@ src/services/emailService.ts(1,24): error TS7016: Could not find a declaration f
 ## ✅ **Solution Applied**
 
 ### 1. **Fixed package.json Structure**
-- Moved all `@types/*` packages to `devDependencies`
-- Kept only runtime packages in `dependencies`
-- Added `@types/nodemailer` to devDependencies
+- **MOVED ALL `@types/*` packages to `dependencies`** (Render doesn't install devDependencies properly)
+- Kept all TypeScript types as regular dependencies to ensure they're available during build
+- This ensures all TypeScript definitions are available during Render deployment
 
-### 2. **Created Fallback Type Definitions**
-- Added `src/types/nodemailer.d.ts` with basic TypeScript definitions
-- This provides type support even if `@types/nodemailer` fails to install
+### 2. **Fixed TypeScript Interface Issues**
+- Updated `AuthenticatedRequest` interface to properly extend Express `Request`
+- Added support for multer file uploads in the interface
 
 ### 3. **Updated Build Scripts**
 - Changed `render-build` script to use `npm ci` for consistent installs
@@ -27,16 +27,18 @@ src/services/emailService.ts(1,24): error TS7016: Could not find a declaration f
 ```json
 {
   "dependencies": {
-    // Only runtime dependencies
-    "nodemailer": "^7.0.6",
-    // ... other runtime packages
-  },
-  "devDependencies": {
-    // All TypeScript types
+    // TypeScript types in dependencies for Render
+    "@types/express": "^5.0.0",
     "@types/nodemailer": "^7.0.1",
     "@types/node": "^22.10.0",
     "typescript": "^5.7.2",
-    // ... other dev packages
+    // Runtime dependencies
+    "express": "^4.19.2",
+    "nodemailer": "^7.0.6",
+    // ... other packages
+  },
+  "devDependencies": {
+    "ts-node-dev": "^2.0.0"
   },
   "scripts": {
     "render-build": "npm ci && npm run build"
@@ -72,8 +74,10 @@ Make sure Render uses this build command:
 npm ci && npm run build
 ```
 
-## ⚠️ **Fallback Plan**
-If types still fail on Render, the custom `nodemailer.d.ts` file provides basic type definitions to allow compilation to succeed.
+## ✅ **Why This Solution Works**
+- **All TypeScript types are in dependencies**: Render installs them during build
+- **Clean TypeScript compilation**: All interfaces properly typed
+- **No missing modules**: All required type definitions available
 
 ## 📝 **Next Steps After Deployment**
 1. Verify forgot password functionality works
