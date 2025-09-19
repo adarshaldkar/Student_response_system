@@ -465,20 +465,20 @@ const FileSharing = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 p-2 sm:p-0">
       <Tabs defaultValue="upload" className="space-y-4">
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-4 gap-4">
           <TabsList className="grid w-full grid-cols-3 h-auto">
-            <TabsTrigger value="upload" className="flex-1 text-xs sm:text-sm font-medium py-2 px-2 sm:px-4 flex items-center justify-center">
+            <TabsTrigger value="upload" className="flex-1 text-xs sm:text-sm font-medium py-3 px-1 sm:px-4 flex items-center justify-center">
               <Upload className="h-4 w-4 mr-1 sm:mr-2 flex-shrink-0" />
-              <span>Upload File</span>
-              
+              <span className="hidden sm:inline">Upload File</span>
+              <span className="sm:hidden">Upload</span>
             </TabsTrigger>
-            <TabsTrigger value="received" className="flex-1 text-xs sm:text-sm font-medium py-2 px-2 sm:px-4 flex items-center justify-center relative">
+            <TabsTrigger value="received" className="flex-1 text-xs sm:text-sm font-medium py-3 px-1 sm:px-4 flex items-center justify-center relative">
               <div className="flex items-center justify-center">
                 <Download className="h-4 w-4 mr-1 sm:mr-2 flex-shrink-0" />
-                <span>Received Files</span>
-                
+                <span className="hidden sm:inline">Received Files</span>
+                <span className="sm:hidden">Received</span>
                 {receivedFiles.filter(f => f.status !== 'viewed').length > 0 && (
                   <Badge variant="destructive" className="ml-1 sm:ml-2 text-xs">
                     {receivedFiles.filter(f => f.status !== 'viewed').length}
@@ -486,10 +486,10 @@ const FileSharing = () => {
                 )}
               </div>
             </TabsTrigger>
-            <TabsTrigger value="sent" className="flex-1 text-xs sm:text-sm font-medium py-2 px-2 sm:px-4 flex items-center justify-center">
+            <TabsTrigger value="sent" className="flex-1 text-xs sm:text-sm font-medium py-3 px-1 sm:px-4 flex items-center justify-center">
               <FileText className="h-4 w-4 mr-1 sm:mr-2 flex-shrink-0" />
-              <span>Sent Files</span>
-              
+              <span className="hidden sm:inline">Sent Files</span>
+              <span className="sm:hidden">Sent</span>
             </TabsTrigger>
           </TabsList>
           
@@ -669,7 +669,7 @@ const FileSharing = () => {
                 </Badge>
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-3 sm:p-6">
               {receivedFiles.length === 0 ? (
                 <div className="text-center py-8">
                   <Download className="mx-auto h-12 w-12 text-gray-400 mb-4" />
@@ -678,34 +678,36 @@ const FileSharing = () => {
               ) : (
                 <div className="space-y-3">
                   {receivedFiles.map((file) => (
-                    <div key={file.id} className="p-4 border rounded-lg bg-white">
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-2">
-                            <FileText className="h-5 w-5 text-blue-600" />
-                            <h3 className="font-medium text-gray-900">{file.fileName}</h3>
+                    <div key={file.id} className="p-3 sm:p-4 border rounded-lg bg-white">
+                      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start sm:items-center gap-2">
+                            <FileText className="h-5 w-5 text-blue-600 flex-shrink-0" />
+                            <h3 className="font-medium text-gray-900 break-words">
+                              {file.fileName}
+                            </h3>
                             {file.status !== 'viewed' && (
-                              <Badge variant="destructive" className="text-xs">New</Badge>
+                              <Badge variant="destructive" className="text-xs flex-shrink-0">New</Badge>
                             )}
                           </div>
-                          <div className="mt-1 text-sm text-gray-500 space-y-1">
-                            <p>From: <span className="font-medium">{file.senderUsername}</span></p>
+                          <div className="mt-2 text-sm text-gray-600 space-y-1">
+                            <p className="break-words">From: <span className="font-medium text-gray-800">{file.senderUsername}</span></p>
                             <p>Size: {formatFileSize(file.fileSize)}</p>
                             <p>Received: {new Date(file.sentAt).toLocaleString()}</p>
                             {file.message && (
-                              <p className="text-gray-700">Message: "{file.message}"</p>
+                              <p className="text-gray-700 break-words">Message: "{file.message}"</p>
                             )}
                           </div>
                         </div>
-                        <div className="flex items-center space-x-3">
-                          <div className="flex items-center space-x-1 text-sm text-gray-500">
+                        <div className="w-full sm:w-auto flex items-center sm:items-end justify-between sm:justify-end gap-3">
+                          <div className="flex items-center gap-1 text-sm text-gray-500">
                             {getStatusIcon(file.status)}
                             <span>{getStatusText(file.status)}</span>
                           </div>
                           <Button
                             onClick={() => handleDownload(file.id, file.fileName)}
                             size="sm"
-                            className="bg-green-600 hover:bg-green-700"
+                            className="bg-green-600 hover:bg-green-700 w-full sm:w-auto justify-center"
                           >
                             <Download className="h-4 w-4 mr-2" />
                             Download
@@ -731,7 +733,7 @@ const FileSharing = () => {
                 </Badge>
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-3 sm:p-6">
               {sentFiles.length === 0 ? (
                 <div className="text-center py-8">
                   <FileText className="mx-auto h-12 w-12 text-gray-400 mb-4" />
@@ -740,19 +742,21 @@ const FileSharing = () => {
               ) : (
                 <div className="space-y-3">
                   {sentFiles.map((file) => (
-                    <div key={file.id} className="p-4 border rounded-lg bg-white">
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-2">
-                            <FileText className="h-5 w-5 text-blue-600" />
-                            <h3 className="font-medium text-gray-900">{file.fileName}</h3>
+                    <div key={file.id} className="p-3 sm:p-4 border rounded-lg bg-white">
+                      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start sm:items-center gap-2">
+                            <FileText className="h-5 w-5 text-blue-600 flex-shrink-0" />
+                            <h3 className="font-medium text-gray-900 break-words">
+                              {file.fileName}
+                            </h3>
                           </div>
-                          <div className="mt-1 text-sm text-gray-500 space-y-1">
-                            <p>To: <span className="font-medium">{file.receiverUsername}</span></p>
+                          <div className="mt-2 text-sm text-gray-600 space-y-1">
+                            <p className="break-words">To: <span className="font-medium text-gray-800">{file.receiverUsername}</span></p>
                             <p>Size: {formatFileSize(file.fileSize)}</p>
                             <p>Sent: {new Date(file.sentAt).toLocaleString()}</p>
                             {file.message && (
-                              <p className="text-gray-700">Message: "{file.message}"</p>
+                              <p className="text-gray-700 break-words">Message: "{file.message}"</p>
                             )}
                             {file.deliveredAt && (
                               <p>Delivered: {new Date(file.deliveredAt).toLocaleString()}</p>
@@ -762,7 +766,7 @@ const FileSharing = () => {
                             )}
                           </div>
                         </div>
-                        <div className="flex items-center space-x-1 text-sm">
+                        <div className="w-full sm:w-auto flex items-center justify-center sm:justify-end gap-1 text-sm">
                           {getStatusIcon(file.status)}
                           <span className="text-gray-600">{getStatusText(file.status)}</span>
                         </div>
