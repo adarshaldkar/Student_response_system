@@ -1403,30 +1403,6 @@ const AdminView = () => {
     }
   };
 
-  const handleFileUpload = (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const workbook = XLSX.read(e.target.result, { type: 'binary' });
-        const sheetName = workbook.SheetNames[0];
-        const sheet = workbook.Sheets[sheetName];
-        const data = XLSX.utils.sheet_to_json(sheet);
-
-        console.log('Uploaded feedback data:', data);
-        toast.success('File uploaded successfully!', {
-          description: 'Feedback file has been processed successfully.',
-          duration: 3000,
-        });
-      } catch (error) {
-        console.error('Error reading file:', error);
-        setError('Error reading file. Please ensure it\'s a valid Excel file.');
-      }
-    };
-    reader.readAsBinaryString(file);
-  };
 
   if (loading) {
     return (
@@ -1480,15 +1456,12 @@ const AdminView = () => {
         )}
 
         <Tabs defaultValue="create" className="space-y-4 sm:space-y-6">
-          <TabsList className="grid w-full grid-cols-2 lg:grid-cols-5 gap-1 p-1 h-auto bg-gray-100 rounded-lg">
+          <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4 gap-1 p-1 h-auto bg-gray-100 rounded-lg">
             <TabsTrigger value="create" className="text-xs sm:text-sm font-medium px-2 sm:px-3 py-2 rounded-md transition-all duration-200 data-[state=active]:bg-white data-[state=active]:shadow-sm whitespace-nowrap">
               Create Form
             </TabsTrigger>
             <TabsTrigger value="forms" className="text-xs sm:text-sm font-medium px-2 sm:px-3 py-2 rounded-md transition-all duration-200 data-[state=active]:bg-white data-[state=active]:shadow-sm whitespace-nowrap">
               Manage ({forms.length})
-            </TabsTrigger>
-            <TabsTrigger value="upload" className="text-xs sm:text-sm font-medium px-2 sm:px-3 py-2 rounded-md transition-all duration-200 data-[state=active]:bg-white data-[state=active]:shadow-sm whitespace-nowrap">
-              Upload Data
             </TabsTrigger>
             <TabsTrigger value="export" className="text-xs sm:text-sm font-medium px-2 sm:px-3 py-2 rounded-md transition-all duration-200 data-[state=active]:bg-white data-[state=active]:shadow-sm whitespace-nowrap">
               Export Data
@@ -2341,46 +2314,6 @@ const AdminView = () => {
             </Card>
           </TabsContent>
 
-          {/* Upload Data */}
-          <TabsContent value="upload">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg sm:text-xl">
-                  Upload Student Feedback Files
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-4 sm:p-6">
-                <div className="space-y-4 sm:space-y-6">
-                  <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                    <h4 className="font-medium text-blue-900 mb-2">Upload Instructions</h4>
-                    <ul className="text-sm text-blue-800 space-y-1">
-                      <li>• Only Excel files (.xlsx, .xls) are supported</li>
-                      <li>• Ensure your file contains valid feedback data</li>
-                      <li>• File will be processed automatically after upload</li>
-                    </ul>
-                  </div>
-                  
-                  <div className="space-y-3">
-                    <Label htmlFor="fileUpload" className="text-sm font-medium text-gray-700">Select Excel File</Label>
-                    <div className="mt-2">
-                      <input
-                        id="fileUpload"
-                        type="file"
-                        accept=".xlsx,.xls"
-                        onChange={handleFileUpload}
-                        className="block w-full text-sm text-gray-500 file:mr-4 file:py-3 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 file:cursor-pointer cursor-pointer"
-                      />
-                    </div>
-                  </div>
-                  
-                  <Button variant="outline" className="w-full">
-                    <Upload className="h-4 w-4 mr-2" />
-                    Upload Feedback File
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
 
           {/* Export Data */}
           <TabsContent value="export">

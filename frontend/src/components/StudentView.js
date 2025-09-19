@@ -250,11 +250,11 @@ const StudentView = () => {
             <Alert variant="destructive">
               <AlertDescription>{error}</AlertDescription>
             </Alert>
-            <div className="mt-4 text-center">
+            {/*<div className="mt-4 text-center">
               <Button onClick={() => navigate("/")} variant="outline">
                 Go to Homepage
               </Button>
-            </div>
+            </div>*/}
           </CardContent>
         </Card>
       </div>
