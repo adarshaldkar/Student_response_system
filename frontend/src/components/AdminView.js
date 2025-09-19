@@ -1432,7 +1432,7 @@ const AdminView = () => {
                   Admin Dashboard
                 </CardTitle>
                 <p className="text-sm sm:text-base text-gray-600 mt-1">
-                  Welcome, <span className="font-medium text-blue-600">{user?.username}</span> - Manage feedback forms and view submissions
+                  Welcome, <span className="font-medium text-blue-600">{user?.name || user?.username}</span> - Manage feedback forms and view submissions
                 </p>
               </div>
               <Button 

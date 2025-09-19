@@ -119,14 +119,24 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const login = async (username, password) => {
+  const login = async (username, password, googleCredential = null) => {
     try {
-      const response = await axios.post(`${API}/auth/login`, {
-        username,
-        password
-      });
+      let response;
       
-      const { access_token, role, user_id } = response.data;
+      if (googleCredential) {
+        // Google OAuth login
+        response = await axios.post(`${API}/auth/google-login`, {
+          credential: googleCredential
+        });
+      } else {
+        // Regular login
+        response = await axios.post(`${API}/auth/login`, {
+          username,
+          password
+        });
+      }
+      
+      const { access_token, role, user_id, name } = response.data;
       
       // Set token and headers first
       axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
@@ -158,7 +168,7 @@ export const AuthProvider = ({ children }) => {
         role
       });
       
-      const { access_token } = response.data;
+      const { access_token, name } = response.data;
       localStorage.setItem('token', access_token);
       setToken(access_token);
       axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;

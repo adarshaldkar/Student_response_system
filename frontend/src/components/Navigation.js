@@ -58,7 +58,7 @@ const Navigation = () => {
             {isAuthenticated ? (
               <>
                 <span className="text-sm text-gray-600 mr-2 max-w-32 truncate">
-                  Welcome, <span className="font-medium text-blue-600">{user?.username}</span>
+                  Welcome, <span className="font-medium text-blue-600">{user?.name || user?.username}</span>
                 </span>
                 
                 {!isAdmin && (
@@ -136,7 +136,7 @@ const Navigation = () => {
               {isAuthenticated ? (
                 <>
                   <div className="px-3 py-2 text-sm text-gray-600 border-b">
-                    Welcome, <span className="font-medium text-blue-600">{user?.username}</span>
+                    Welcome, <span className="font-medium text-blue-600">{user?.name || user?.username}</span>
                   </div>
                   
                   {!isAdmin && (

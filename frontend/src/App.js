@@ -9,8 +9,11 @@ import StudentView from "./components/StudentView";
 import AdminView from "./components/AdminView";
 import Login from "./components/Login";
 import Register from "./components/Register";
+import ForgotPassword from "./components/ForgotPassword";
+import ResetPassword from "./components/ResetPassword";
 import { Toaster } from "./components/ui/toaster";
 import { Toaster as SonnerToaster } from "sonner";
+import { GoogleOAuthProvider } from '@react-oauth/google';
 
 function App() {
   // Ensure correct title is always set
@@ -24,16 +27,19 @@ function App() {
   }, []);
 
   return (
-    <div className="App min-h-screen bg-gray-50 overflow-x-hidden w-full max-w-full" style={{width: '100vw', maxWidth: '100vw', margin: 0, padding: 0}}>
-      <AuthProvider>
-        <HashRouter>
-          <Navigation />
-          <main className="flex-1">
-            <Routes>
-            {/* Public Routes */}
-            <Route path="/" element={<HomePage />} />
-            <Route path="/admin-login" element={<Login role="admin" />} />
-            <Route path="/register" element={<Register />} />
+    <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID || "your-google-client-id"}>
+      <div className="App min-h-screen bg-gray-50 overflow-x-hidden w-full max-w-full" style={{width: '100vw', maxWidth: '100vw', margin: 0, padding: 0}}>
+        <AuthProvider>
+          <HashRouter>
+            <Navigation />
+            <main className="flex-1">
+              <Routes>
+              {/* Public Routes */}
+              <Route path="/" element={<HomePage />} />
+              <Route path="/admin-login" element={<Login role="admin" />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
             
             {/* Student Form Access (Public with form validation) */}
             <Route 
@@ -73,18 +79,19 @@ function App() {
               }
             />
             </Routes>
-          </main>
-          <Toaster />
-          <SonnerToaster 
-            position="top-right" 
-            richColors 
-            theme="light"
-            closeButton
-            expand
-          />
-        </HashRouter>
-      </AuthProvider>
-    </div>
+            </main>
+            <Toaster />
+            <SonnerToaster 
+              position="top-right" 
+              richColors 
+              theme="light"
+              closeButton
+              expand
+            />
+          </HashRouter>
+        </AuthProvider>
+      </div>
+    </GoogleOAuthProvider>
   );
 }
 

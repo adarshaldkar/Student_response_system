@@ -324,7 +324,7 @@ const HomePage = () => {
         <Card>
           <CardHeader className="px-4 sm:px-6">
             <CardTitle className="text-lg sm:text-xl">
-              Welcome, {user?.username}!
+              Welcome, {user?.name || user?.username}!
             </CardTitle>
           </CardHeader>
           <CardContent className="px-4 sm:px-6">

@@ -11,6 +11,8 @@ export interface IUser extends Document {
   email: string;
   hashedPassword: string;
   role: UserRole;
+  googleId?: string;
+  name?: string; // Display name for users, especially Google users
   createdAt: Date;
 }
 
@@ -33,12 +35,20 @@ const UserSchema: Schema = new Schema({
   },
   hashedPassword: {
     type: String,
-    required: true
+    required: false // Optional for Google users
   },
   role: {
     type: String,
     enum: Object.values(UserRole),
     required: true
+  },
+  googleId: {
+    type: String,
+    sparse: true // Allows multiple null values
+  },
+  name: {
+    type: String,
+    trim: true // Display name for the user
   },
   createdAt: {
     type: Date,
